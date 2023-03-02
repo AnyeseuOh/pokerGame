@@ -66,6 +66,13 @@ public class StageManager : MonoBehaviour
     int enCardNum;
     int plCardNum;
 
+    public enum MatchState
+    {
+        Idle,
+        win,
+        lose
+    }
+
     public bool isTurnOver = false;
     public bool isMatchOver = false;
     public bool isGameOver = false;
@@ -157,7 +164,7 @@ public class StageManager : MonoBehaviour
 
             //카드 부여
             enemyCard = shuffle.GiveCard(playCard);
-            enemyCard = Instantiate(enemyCard, new Vector3(0, 0, -2.5f), new Quaternion(0, 0, 0, 0));
+            enemyCard = Instantiate(enemyCard, new Vector3(-0.15f, 0, -2.5f), new Quaternion(0, -12f, 0, 0));
             plCard = shuffle.GiveCard(playCard);
             plCard = Instantiate(plCard, new Vector3(-0.9f, 1.2f, 0.9f), new Quaternion(0, 0.9f, 0, 0.4f));
 
@@ -434,7 +441,7 @@ public class StageManager : MonoBehaviour
             {
                 //무승부시 카드 부여
                 enemyCard = shuffle.GiveCard(playCard);
-                enemyCard = Instantiate(enemyCard, new Vector3(0, 0, -2.5f), new Quaternion(0, 0, 0, 0));
+                enemyCard = Instantiate(enemyCard, new Vector3(-0.15f, 0, -2.5f), new Quaternion(0, -12f, 0, 0));
                 plCard = shuffle.GiveCard(playCard);
                 plCard = Instantiate(plCard, new Vector3(-0.9f, 1.2f, 0.9f), new Quaternion(0, 0.9f, 0, 0.4f));
 
@@ -465,7 +472,7 @@ public class StageManager : MonoBehaviour
             {
                 //무승부시 카드 부여
                 enemyCard = shuffle.GiveCard(playCard);
-                enemyCard = Instantiate(enemyCard, new Vector3(0, 0, -2.5f), new Quaternion(0, 0, 0, 0));
+                enemyCard = Instantiate(enemyCard, new Vector3(-0.15f, 0, -2.5f), new Quaternion(0, -12f, 0, 0));
                 plCard = shuffle.GiveCard(playCard);
                 plCard = Instantiate(plCard, new Vector3(-0.9f, 1.2f, 0.9f), new Quaternion(0, 0.9f, 0, 0.4f));
 
@@ -820,7 +827,7 @@ public class StageManager : MonoBehaviour
     {
         Destroy(enemyCard);
         enemyCard = shuffle.GiveCard(playCard);
-        enemyCard = Instantiate(enemyCard, new Vector3(0, 0, -2.5f), new Quaternion(0, 0, 0, 0));
+        enemyCard = Instantiate(enemyCard, new Vector3(-0.15f, 0, -2.5f), new Quaternion(0, -12f, 0, 0));
     }
 
     public void ShowDiceNum(GameObject[] objs, int num)
