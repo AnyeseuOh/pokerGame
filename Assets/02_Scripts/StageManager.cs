@@ -32,6 +32,12 @@ public class StageManager : MonoBehaviour
     public Text winText;
     public Text loseText;
 
+    public GameObject plCardImg;
+    public GameObject enCardImg;
+    public Sprite[] cardImgs;
+    public Image plRCard;
+    public Image enRCard;
+
     public Button resetDeckBtn;
     public Button rndShuffleBtn;
     public Button changeCardBtn;
@@ -40,6 +46,9 @@ public class StageManager : MonoBehaviour
     public GameObject win;
     public GameObject lose;
     public GameObject draw;
+
+    public GameObject lightEffectPrefab;
+    public GameObject hitEffectPrefab;
 
     public string curTurnPlayer;
     public Timer timer;
@@ -72,6 +81,7 @@ public class StageManager : MonoBehaviour
         win,
         lose
     }
+    public MatchState matchState;
 
     public bool isTurnOver = false;
     public bool isMatchOver = false;
@@ -83,7 +93,8 @@ public class StageManager : MonoBehaviour
 
     IEnumerator Start()
     {
-
+        //MatchState.Idle;
+        
         //임시로 숫자 부여
         enemyChip = 20;
         playerChip = 20;
@@ -164,9 +175,15 @@ public class StageManager : MonoBehaviour
 
             //카드 부여
             enemyCard = shuffle.GiveCard(playCard);
-            enemyCard = Instantiate(enemyCard, new Vector3(-0.15f, 0, -2.5f), new Quaternion(0, -12f, 0, 0));
+
+            enemyCard = Instantiate(enemyCard, new Vector3(-0.15f, 0, -2.5f), new Quaternion(0, 0, 0, 0));
+            enemyCard.transform.localRotation = new Quaternion(0, -0.1f, 0, 0.99f);
+            enemyCard.name = enemyCard.name.Replace("(Clone)", "");
+
             plCard = shuffle.GiveCard(playCard);
-            plCard = Instantiate(plCard, new Vector3(-0.9f, 1.2f, 0.9f), new Quaternion(0, 0.9f, 0, 0.4f));
+            plCard = Instantiate(plCard, new Vector3(-0.98f, 1.4f, 1f), new Quaternion(0, 0.94f, 0, 0.34f));
+            plCard.transform.localScale = new Vector3(1.5f, 1.5f, 1f);
+            plCard.name = plCard.name.Replace("(Clone)", "");
 
             Debug.Log($"Enemy Card ::: {enemyCard.ToString()}");
             Debug.Log($"Player Card ::: {plCard.ToString()}");
@@ -188,8 +205,12 @@ public class StageManager : MonoBehaviour
 
             while (isMatchOver == false) //MatchOver가 아니라면
             {
+                plCardImg.SetActive(false);
+                enCardImg.SetActive(false);
+
                 Debug.Log($"TURN CNT : {turnCnt}");
                 yield return StartCoroutine(TurnFlow());
+
                 isTurnOver = true;
                 win.SetActive(false);
                 lose.SetActive(false);
@@ -230,6 +251,23 @@ public class StageManager : MonoBehaviour
 
     void Update()
     {
+        switch (matchState)
+        {
+            case MatchState.Idle:
+                break;
+
+            case MatchState.win:
+                GameObject lightEffect = Instantiate(lightEffectPrefab, new Vector3(-0.57f, 0.8f, 0.56f), new Quaternion(0, 0, 0, 1f));
+                Destroy(lightEffect.gameObject, 3f);
+                matchState = MatchState.Idle;
+                break;
+
+            case MatchState.lose:
+                GameObject hitEffect = Instantiate(hitEffectPrefab, new Vector3(-0.65f, 0.3f, -0.08f), new Quaternion(0, 0, 0, 1f));
+                Destroy(hitEffect.gameObject, 3f);
+                matchState = MatchState.Idle;
+                break;
+        }
 
         if (isGameOver)
         {
@@ -393,11 +431,14 @@ public class StageManager : MonoBehaviour
         int enemyCardNum = int.Parse(Regex.Replace(enemyCard.ToString(), @"[^0-9]", ""));
         int playerCardNum = int.Parse(Regex.Replace(playerCard.ToString(), @"[^0-9]", ""));
 
+        Debug.Log($"BattleCard 진입 :: en -> {enemyCardNum} / pl -> {playerCardNum}");
+
         if (enemyCardNum > playerCardNum)
         {
             enemyChip = ComputeChip(enemyChip, bettingChip);
             isTurnOver = true;
             Debug.Log($"=============== [BT] Enemy WIN! ================");
+            matchState = MatchState.lose;
             lose.SetActive(true);
             PrintChips();
             bettingChip = 0;
@@ -407,6 +448,7 @@ public class StageManager : MonoBehaviour
             playerChip = ComputeChip(playerChip, bettingChip);
             isTurnOver = true;
             Debug.Log($"=============== [BT] Player WIN! ================");
+            matchState = MatchState.win;
             win.SetActive(true);
             PrintChips();
             bettingChip = 0;
@@ -426,11 +468,13 @@ public class StageManager : MonoBehaviour
         {
             if (enCardNum > plCardNum)
             {
+                matchState = MatchState.lose;
                 enemyChip += bettingChip;
                 isGameOver = true;
             }
             else if (plCardNum > enCardNum)
             {
+                matchState = MatchState.win;
                 playerChip = bettingChip;
                 bettingChip = 0;
                 win.SetActive(true);
@@ -441,9 +485,13 @@ public class StageManager : MonoBehaviour
             {
                 //무승부시 카드 부여
                 enemyCard = shuffle.GiveCard(playCard);
-                enemyCard = Instantiate(enemyCard, new Vector3(-0.15f, 0, -2.5f), new Quaternion(0, -12f, 0, 0));
+                enemyCard = Instantiate(enemyCard, new Vector3(-0.15f, 0, -2.5f), new Quaternion(0, -17f, 0, 0));
+                enemyCard.transform.localRotation = new Quaternion(0, -0.1f, 0, 0.99f);
+                enemyCard.name = enemyCard.name.Replace("(Clone)", "");
+
                 plCard = shuffle.GiveCard(playCard);
-                plCard = Instantiate(plCard, new Vector3(-0.9f, 1.2f, 0.9f), new Quaternion(0, 0.9f, 0, 0.4f));
+                plCard = Instantiate(plCard, new Vector3(-0.98f, 1.4f, 1f), new Quaternion(0, 0.94f, 0, 0.34f));
+                plCard.name = plCard.name.Replace("(Clone)", "");
 
                 Debug.Log($"Enemy Card ::: {enemyCard.ToString()}");
                 Debug.Log($"Player Card ::: {plCard.ToString()}");
@@ -459,11 +507,13 @@ public class StageManager : MonoBehaviour
         {
             if (plCardNum > enCardNum)
             {
+                matchState = MatchState.win;
                 playerChip += bettingChip;
                 isGameOver = true;
             }
             else if (enCardNum > plCardNum)
             {
+                matchState = MatchState.lose;
                 enemyChip = bettingChip;
                 bettingChip = 0;
                 lose.SetActive(true);
@@ -472,9 +522,13 @@ public class StageManager : MonoBehaviour
             {
                 //무승부시 카드 부여
                 enemyCard = shuffle.GiveCard(playCard);
-                enemyCard = Instantiate(enemyCard, new Vector3(-0.15f, 0, -2.5f), new Quaternion(0, -12f, 0, 0));
+                enemyCard = Instantiate(enemyCard, new Vector3(-0.15f, 0, -2.5f), new Quaternion(0, -17f, 0, 0));
+                enemyCard.transform.localRotation = new Quaternion(0, -0.1f, 0, 0.99f);
+                enemyCard.name = enemyCard.name.Replace("(Clone)", "");
+
                 plCard = shuffle.GiveCard(playCard);
                 plCard = Instantiate(plCard, new Vector3(-0.9f, 1.2f, 0.9f), new Quaternion(0, 0.9f, 0, 0.4f));
+                plCard.name = plCard.name.Substring(plCard.name.Length - 7);
 
                 Debug.Log($"Enemy Card ::: {enemyCard.ToString()}");
                 Debug.Log($"Player Card ::: {plCard.ToString()}");
@@ -656,6 +710,7 @@ public class StageManager : MonoBehaviour
     {
         //클릭 전까지 대기
         Debug.Log($"Samebetting 현재 턴플레이어 ::: {curTurnPlayer}");
+        PrintChips();
         if (overBetChip != 0)
         {
             curBetChip = overBetChip;
@@ -679,6 +734,9 @@ public class StageManager : MonoBehaviour
 
         }
         bettingChip += curBetChip;
+
+        ShowCard(enemyCard, plCard);
+        yield return new WaitForSeconds(5f);
 
         BattleCard(enemyCard, plCard); //카드배틀 
         isMatchOver = true; //동률일 때는 무조건 승부 종료
@@ -739,6 +797,7 @@ public class StageManager : MonoBehaviour
                 playerChip = ComputeChip(playerChip, bettingChip);//승리한 플레이어가 배팅칩을 가져감
             }
             Debug.Log($"=============== Player WIN! ================");
+            matchState = MatchState.win;
             win.SetActive(true);
             bettingChip = 0;
             PrintChips();
@@ -771,6 +830,7 @@ public class StageManager : MonoBehaviour
                 enemyChip = ComputeChip(enemyChip, bettingChip); //승리한 적플레이어가 배팅칩을 가져감
             }
             Debug.Log($"=============== Enemy WIN! ================");
+            matchState = MatchState.lose;
             lose.SetActive(true);
             bettingChip = 0;
             PrintChips();
@@ -827,7 +887,9 @@ public class StageManager : MonoBehaviour
     {
         Destroy(enemyCard);
         enemyCard = shuffle.GiveCard(playCard);
-        enemyCard = Instantiate(enemyCard, new Vector3(-0.15f, 0, -2.5f), new Quaternion(0, -12f, 0, 0));
+        enemyCard = Instantiate(enemyCard, new Vector3(-0.15f, 0, -2.5f), new Quaternion(0, -17f, 0, 0));
+        enemyCard.transform.localRotation = new Quaternion(0, -0.1f, 0, 0.99f);
+        enemyCard.name = enemyCard.name.Replace("(Clone)", "");
     }
 
     public void ShowDiceNum(GameObject[] objs, int num)
@@ -848,5 +910,25 @@ public class StageManager : MonoBehaviour
         loseText.text = $"승부 수 : {matchCnt}" +
             $"\n플레이어 칩 개수: {playerChip}" +
             $"\n적 칩 개수: {enemyChip}";
+    }
+
+    public void ShowCard(GameObject enemyCard, GameObject playerCard)
+    {
+        plCardImg.SetActive(true);
+        enCardImg.SetActive(true);
+
+        foreach (Sprite spCard in cardImgs)
+        {
+            if(string.Equals(spCard.name, enemyCard.name))
+            {
+                enRCard.sprite = spCard;
+            }
+
+            if (string.Equals(spCard.name, playerCard.name))
+            {
+                plRCard.sprite = spCard;
+            }
+
+        }
     }
 }
