@@ -27,10 +27,13 @@ public class StageManager : MonoBehaviour
     public GameObject useItemPanel;
     public GameObject gameOverPanelWin;
     public GameObject gameOverPanelLose;
+    public GameObject enemyTurnPanel;
+
     public InputField chipValue;
     public InputField overChipValue;
     public Text winText;
     public Text loseText;
+    public Text enemyState;
 
     public GameObject plCardImg;
     public GameObject enCardImg;
@@ -51,6 +54,7 @@ public class StageManager : MonoBehaviour
     public GameObject hitEffectPrefab;
 
     public string curTurnPlayer;
+    public string curEnemyBetting;
     public Timer timer;
     public Shuffle shuffle;
     public UIManager uiManager;
@@ -200,8 +204,17 @@ public class StageManager : MonoBehaviour
             }
 
             //최초 턴플레이어 표시
-            if (result == 0) { curTurnPlayer = "Enemy"; anim.SetBool("isEnemyTurn", true); }
-            else if (result == 1) { curTurnPlayer = "Player"; anim.SetBool("isEnemyTurn", false); }
+            if (result == 0) { 
+                curTurnPlayer = "Enemy";
+                anim.SetBool("isEnemyTurn", true);
+                enemyTurnPanel.SetActive(true);
+                enemyState.text = "베팅 중 . . .";
+            }
+            else if (result == 1) {
+                curTurnPlayer = "Player";
+                anim.SetBool("isEnemyTurn", false);
+                enemyTurnPanel.SetActive(false);
+            }
 
             while (isMatchOver == false) //MatchOver가 아니라면
             {
@@ -211,13 +224,23 @@ public class StageManager : MonoBehaviour
                 Debug.Log($"TURN CNT : {turnCnt}");
                 yield return StartCoroutine(TurnFlow());
 
-                isTurnOver = true;
+                enemyTurnPanel.SetActive(false);
+                enemyState.text = "베팅 중 . . ."; //초기화
+
+                plCardImg.SetActive(false);
+                enCardImg.SetActive(false);
+                //카드 결과 OFF
+
                 win.SetActive(false);
                 lose.SetActive(false);
                 draw.SetActive(false);
                 chipValue.text = null;
                 overChipValue.text = null;
 
+                yield return new WaitForSeconds(1.0f);
+                matchState = MatchState.Idle;
+                Debug.Log("TurnFlow 후 isTurnOver 진행");
+                isTurnOver = true;
                 yield return null;
             }
 
@@ -254,18 +277,15 @@ public class StageManager : MonoBehaviour
         switch (matchState)
         {
             case MatchState.Idle:
+                anim.SetInteger("result", 0);
                 break;
 
             case MatchState.win:
-                GameObject lightEffect = Instantiate(lightEffectPrefab, new Vector3(-0.57f, 0.8f, 0.56f), new Quaternion(0, 0, 0, 1f));
-                Destroy(lightEffect.gameObject, 3f);
-                matchState = MatchState.Idle;
+                anim.SetInteger("result", 1);
                 break;
 
             case MatchState.lose:
-                GameObject hitEffect = Instantiate(hitEffectPrefab, new Vector3(-0.65f, 0.3f, -0.08f), new Quaternion(0, 0, 0, 1f));
-                Destroy(hitEffect.gameObject, 3f);
-                matchState = MatchState.Idle;
+                anim.SetInteger("result", 2);
                 break;
         }
 
@@ -279,6 +299,27 @@ public class StageManager : MonoBehaviour
             if (playerChip > enemyChip)
             {
                 gameResult = 0; //0이 플레이어 승리
+                if (PlayerPrefs.GetString("CUR_STAGE").Equals("stage1-1"))
+                {
+                    PlayerPrefs.SetString("IS_CLEAR_1", "Y");
+                }
+                else if (PlayerPrefs.GetString("CUR_STAGE").Equals("stage1-2"))
+                {
+                    PlayerPrefs.SetString("IS_CLEAR_2", "Y");
+                }
+                else if (PlayerPrefs.GetString("CUR_STAGE").Equals("stage1-3"))
+                {
+                    PlayerPrefs.SetString("IS_CLEAR_3", "Y");
+                }
+                else if (PlayerPrefs.GetString("CUR_STAGE").Equals("stage1-4"))
+                {
+                    PlayerPrefs.SetString("IS_CLEAR_4", "Y");
+                }
+                else
+                {
+                    PlayerPrefs.SetString("IS_CLEAR_5", "Y");
+                }
+
             }
             else
             {
@@ -291,7 +332,7 @@ public class StageManager : MonoBehaviour
             turnCnt = 1;
         }
 
-        if (isTurnOver)
+        if (isTurnOver && enemyChip != 0 && playerChip !=0)
         {
             Debug.Log($"isTurnOver ::: 현재턴 {curTurnPlayer}");
             turnCnt++; //턴증가
@@ -308,6 +349,7 @@ public class StageManager : MonoBehaviour
             Debug.Log($"isTurnOver ::: 변경턴 {curTurnPlayer}");
             isTurnOver = false;
         }
+
     }
 
     IEnumerator TurnFlow()
@@ -335,10 +377,12 @@ public class StageManager : MonoBehaviour
             //클릭 전까지 대기
             yield return StartCoroutine(ReturnIsBtnClick());
 
+            yield return new WaitForSeconds(5f);
         }
         else //curTurnPlayer == "Enemy"
         {
-            yield return new WaitForSeconds(3f);
+            enemyTurnPanel.SetActive(true);
+            yield return new WaitForSeconds(5f);
             Debug.Log("3초 대기1");
             if (turnCnt == 1)
             {
@@ -357,6 +401,7 @@ public class StageManager : MonoBehaviour
                 {
                     //포기
                     Debug.Log("::: DIE :::");
+                    yield return new WaitForSeconds(3.0f);
                     yield return StartCoroutine(DieBetting());
                 }
             }
@@ -364,7 +409,7 @@ public class StageManager : MonoBehaviour
             {
                 //선택지 확률부터
                 int choice = Random.Range(0, 3);
-
+                PrintChips();
                 if (overBetChip == enemyChip || curBetChip == enemyChip)
                 {
                     choice = Random.Range(1, 3);
@@ -390,11 +435,12 @@ public class StageManager : MonoBehaviour
                     PrintChips();
                 }
             }
-            Debug.Log("3초 대기2");
-            yield return new WaitForSeconds(3f);
+            Debug.Log("1초 대기2");
+            yield return new WaitForSeconds(1f);
         }
 
         yield return new WaitForSeconds(3.0f);
+
         /*if (playerChip == 0 || enemyChip == 0) // 0이 되면 무조건 카드 공개
         {
             BattleCard(enemyCard, plCard);
@@ -439,7 +485,10 @@ public class StageManager : MonoBehaviour
             isTurnOver = true;
             Debug.Log($"=============== [BT] Enemy WIN! ================");
             matchState = MatchState.lose;
+            enemyTurnPanel.SetActive(false);
             lose.SetActive(true);
+            HitPlayerEffect();
+
             PrintChips();
             bettingChip = 0;
         }
@@ -449,7 +498,9 @@ public class StageManager : MonoBehaviour
             isTurnOver = true;
             Debug.Log($"=============== [BT] Player WIN! ================");
             matchState = MatchState.win;
+            enemyTurnPanel.SetActive(false);
             win.SetActive(true);
+            HitEnemyEffect();
             PrintChips();
             bettingChip = 0;
         }
@@ -457,6 +508,8 @@ public class StageManager : MonoBehaviour
         {
             isTurnOver = true;
             Debug.Log($"=============== [BT] DRAW! ================");
+            isDraw = true;
+            enemyTurnPanel.SetActive(false);
             draw.SetActive(true);
             PrintChips();
         }
@@ -477,7 +530,9 @@ public class StageManager : MonoBehaviour
                 matchState = MatchState.win;
                 playerChip = bettingChip;
                 bettingChip = 0;
+                enemyTurnPanel.SetActive(false);
                 win.SetActive(true);
+                HitEnemyEffect();
                 PrintChips();
                 isMatchOver = true;
             }
@@ -516,7 +571,10 @@ public class StageManager : MonoBehaviour
                 matchState = MatchState.lose;
                 enemyChip = bettingChip;
                 bettingChip = 0;
+                enemyTurnPanel.SetActive(false);
                 lose.SetActive(true);
+                HitPlayerEffect();
+
                 isMatchOver = true;
             } else
             {
@@ -578,24 +636,21 @@ public class StageManager : MonoBehaviour
 
         Debug.Log("=============LoadChipValue=============");
         PrintChips();
-        Debug.Log("LoadChipValue 코루틴 3초대기시작~");
-        yield return new WaitForSeconds(3.0f);
+        yield return null;
     }
 
     IEnumerator OverLoadChipValue()
     {
         prvBetChip = curBetChip;
         curBetChip = int.Parse(overChipValue.text);
-
-        
-        Debug.Log("OverLoadChipValue 코루틴 3초대기시작~");
-        yield return new WaitForSeconds(3.0f);
+        yield return null;
     }
 
     IEnumerator NormalBetting()
     {
         if (curTurnPlayer == "Enemy")
         {
+            enemyState.text = "베팅 중 . . .";
             int max = enemyChip;
             if (max > playerChip)
             {
@@ -615,7 +670,7 @@ public class StageManager : MonoBehaviour
             Debug.Log($"Player BETTING CHIP VALUE ::: {curBetChip}");
             bettingChip += curBetChip;
         }
-        yield return new WaitForSeconds(3f);
+        yield return null;
     }
 
     public void IsOverBetBtnClick()
@@ -644,6 +699,8 @@ public class StageManager : MonoBehaviour
         //적일 경우
         if (curTurnPlayer == "Enemy")
         {
+            enemyState.text = "초과 배팅";
+            yield return new WaitForSeconds(3.0f);
             if (prvBetChip == 0)
             {
                 prvBetChip = curBetChip;
@@ -667,8 +724,10 @@ public class StageManager : MonoBehaviour
 
             enemyChip -= curBetChip;
             bettingChip += curBetChip;
+
             Debug.Log("=============EN OverBetting=============");
             PrintChips();
+            yield return new WaitForSeconds(2.0f);
         }
 
         //플레이어일 경우
@@ -690,7 +749,7 @@ public class StageManager : MonoBehaviour
             Debug.Log("=============OverBetting=============");
             PrintChips();
         }
-        yield return new WaitForSeconds(3.0f);
+        yield return null;
     }
 
     public void IsSameBetBtnClick()
@@ -723,6 +782,8 @@ public class StageManager : MonoBehaviour
         }
         else if (curTurnPlayer == "Enemy")
         {
+            enemyState.text = "동률배팅";
+            yield return new WaitForSeconds(3.0f);
             enemyChip -= curBetChip;
             /*if (overBetChip != 0)
             {
@@ -735,25 +796,36 @@ public class StageManager : MonoBehaviour
         }
         bettingChip += curBetChip;
 
-        ShowCard(enemyCard, plCard);
+        enemyTurnPanel.SetActive(false);
+        ShowCard(enemyCard, plCard); //카드 결과 보여주기
         yield return new WaitForSeconds(5f);
+        plCardImg.SetActive(false);
+        enCardImg.SetActive(false);
+        //카드 결과 OFF
 
+        Debug.Log("Samebetting BattleCard 진입전");
         BattleCard(enemyCard, plCard); //카드배틀 
         isMatchOver = true; //동률일 때는 무조건 승부 종료
         yield return null;
 
-        if (!isDraw)
+        if (isDraw)
         {
+            Debug.Log("Draw if문 진입");
             curBetChip = 0;
             prvBetChip = 0;
             overBetChip = 0;
             isMatchOver = true;
             yield return null;
         }
-        bettingChip = 0;
-        Debug.Log("=============SameBetting=============");
-        PrintChips();
-        yield return new WaitForSeconds(3.0f);
+        
+        else
+        {
+            bettingChip = 0;
+            Debug.Log("=============SameBetting=============");
+            PrintChips();
+            yield return new WaitForSeconds(3.0f);
+        }
+        
     }
 
     public void IsDieBtnClick()
@@ -773,6 +845,8 @@ public class StageManager : MonoBehaviour
     {
         if (curTurnPlayer == "Enemy")
         {
+            enemyState.text = "포기";
+            yield return new WaitForSeconds(3.0f);
             cardNum = int.Parse(Regex.Replace(enemyCard.ToString(), @"[^0-9]", ""));
             //enemyCard에서 숫자만 추출해서 10인지 확인
             if (cardNum == 10)
@@ -796,12 +870,21 @@ public class StageManager : MonoBehaviour
             {
                 playerChip = ComputeChip(playerChip, bettingChip);//승리한 플레이어가 배팅칩을 가져감
             }
+
+            bettingChip = 0;
+            PrintChips();
+
+            enemyTurnPanel.SetActive(false);
+            ShowCard(enemyCard, plCard);
+            yield return new WaitForSeconds(5.0f);
+            plCardImg.SetActive(false);
+            enCardImg.SetActive(false);
+            //카드 결과 OFF
+
             Debug.Log($"=============== Player WIN! ================");
             matchState = MatchState.win;
             win.SetActive(true);
-            bettingChip = 0;
-            PrintChips();
-            
+            HitEnemyEffect();
         }
 
         else
@@ -827,13 +910,24 @@ public class StageManager : MonoBehaviour
             }
             else
             {
+                Debug.Log("PL die Betting 진입");
                 enemyChip = ComputeChip(enemyChip, bettingChip); //승리한 적플레이어가 배팅칩을 가져감
             }
+
+            bettingChip = 0;
+            PrintChips();
+
+            enemyTurnPanel.SetActive(false);
+            ShowCard(enemyCard, plCard);
+            yield return new WaitForSeconds(5.0f);
+            plCardImg.SetActive(false);
+            enCardImg.SetActive(false);
+            //카드 결과 OFF
+
             Debug.Log($"=============== Enemy WIN! ================");
             matchState = MatchState.lose;
             lose.SetActive(true);
-            bettingChip = 0;
-            PrintChips();
+            HitPlayerEffect();
         }
         isMatchOver = true;
         
@@ -930,5 +1024,17 @@ public class StageManager : MonoBehaviour
             }
 
         }
+    }
+
+    public void HitPlayerEffect()
+    {
+        GameObject hitEffect = Instantiate(hitEffectPrefab, new Vector3(-0.65f, 0.3f, -0.08f), new Quaternion(0, 0, 0, 1f));
+        Destroy(hitEffect.gameObject, 3f);
+    }
+
+    public void HitEnemyEffect()
+    {
+        GameObject lightEffect = Instantiate(lightEffectPrefab, new Vector3(-0.57f, 0.8f, 0.56f), new Quaternion(0, 0, 0, 1f));
+        Destroy(lightEffect.gameObject, 3f);
     }
 }

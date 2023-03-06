@@ -9,6 +9,8 @@ public class UIManager : MonoBehaviour
     
     //public InputField chipField;
     public StageManager stageManager;
+
+    public GameObject smokeEffectPrefab;
     public Text chipText; //player input용
     public Text overChipText;
     public Text[] plInfo;
@@ -18,6 +20,8 @@ public class UIManager : MonoBehaviour
     public Text turnCnt;
     public Text matchCnt;
     public Text curTurnPlayer;
+    public Text rangeText;
+
     public Button submitBtn;
     public Button overSubmitBtn;
 
@@ -55,7 +59,7 @@ public class UIManager : MonoBehaviour
         turnCnt.text = $"{stageManager.turnCnt}";
         curTurnPlayer.text = $"{stageManager.curTurnPlayer.ToUpper()}";
         matchCnt.text = $"{stageManager.matchCnt}";
-
+        rangeText.text = $"{playerBetMinRange+1}~{playerBetMaxRange}개 만큼 초과배팅할 수 있어요!";
     }
 
     public void IsAvailRange()
@@ -162,5 +166,14 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void ResetToBetPanel()
+    {
+        transform.position = new Vector3(14f, 1409f, 0);
+    }
 
+    public void ShowSmokeEffect()
+    {
+        GameObject smokeEffect = Instantiate(smokeEffectPrefab, new Vector3(-0.3f, 0.67f, -0.07f), new Quaternion(0, 0, 0, 1f));
+        Destroy(smokeEffect.gameObject, 3f);
+    }
 }

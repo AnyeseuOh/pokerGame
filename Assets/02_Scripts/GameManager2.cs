@@ -5,10 +5,11 @@ using UnityEngine.SceneManagement;
 
 public class GameManager2 : MonoBehaviour
 {
-
     public GameObject optionPanel;
     public GameObject chooseStagePanel;
     public GameObject shopPanel;
+
+    public string curStage = "CUR_STAGE";
 
     void Start()
     {
@@ -33,5 +34,30 @@ public class GameManager2 : MonoBehaviour
     public void ExitTheGame()
     {
         Application.Quit();
+    }
+
+    public void SaveStage1()
+    {
+        PlayerPrefs.SetString(curStage, "stage1-1");
+    }
+
+    public void SaveStage2()
+    {
+        PlayerPrefs.SetString(curStage, "stage1-2");
+    }
+
+    public void SaveStage3()
+    {
+        PlayerPrefs.SetString(curStage, "stage1-3");
+    }
+
+    public void SaveStage4()
+    {
+        PlayerPrefs.SetString(curStage, "stage1-4");
+    }
+
+    public void SaveStage5()
+    {
+        PlayerPrefs.SetString(curStage, "stage1-5");
     }
 }
