@@ -360,9 +360,10 @@ public class StageManager : MonoBehaviour
 
         if (playerChip <= 0 || enemyChip <= 0)
         {
+            ShowCard(enemyCard, plCard);
             yield return StartCoroutine(LastCompare(enCardNum, plCardNum));
+            yield return null;
         }
-
 
         if (curTurnPlayer == "Player") //현재 턴플레이어가 플레이어라면 버튼 활성화
         {

@@ -31,6 +31,11 @@ public class GameManager2 : MonoBehaviour
         SceneManager.LoadScene("LobbyScene");
     }
 
+    public void MoveToScriptScene()
+    {
+        SceneManager.LoadScene("ScriptScene");
+    }
+
     public void ExitTheGame()
     {
         Application.Quit();

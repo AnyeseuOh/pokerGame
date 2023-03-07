@@ -27,6 +27,8 @@ public class UIManager : MonoBehaviour
 
     public GameObject overBetBtn;
 
+    public AudioSource clickSFX;
+
     public int overBetChips;
     public int playerBetMinRange;
     public int playerBetMaxRange;
@@ -44,6 +46,12 @@ public class UIManager : MonoBehaviour
 
     void Update()
     {
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            clickSFX.Play();
+        }
+
         if (playerBetMinRange == playerBetMaxRange || playerBetMaxRange < playerBetMinRange)
         {
             overBetBtn.SetActive(false);
