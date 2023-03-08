@@ -65,4 +65,9 @@ public class GameManager2 : MonoBehaviour
     {
         PlayerPrefs.SetString(curStage, "stage1-5");
     }
+
+    public void SaveStage0()
+    {
+        PlayerPrefs.SetString(curStage, "stage1-0");
+    }
 }

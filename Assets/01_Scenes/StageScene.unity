@@ -5983,7 +5983,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 669804454}
         m_TargetAssemblyTypeName: GameManager2, Assembly-CSharp
-        m_MethodName: MoveToLobbyScene
+        m_MethodName: MoveToScriptScene
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -7481,7 +7481,7 @@ MonoBehaviour:
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 2960, y: 1440}
-  m_ScreenMatchMode: 0
+  m_ScreenMatchMode: 1
   m_MatchWidthOrHeight: 1
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96

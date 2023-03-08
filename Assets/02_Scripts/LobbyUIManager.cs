@@ -42,27 +42,44 @@ public class LobbyUIManager : MonoBehaviour
         int stageNum = int.Parse(stageName.Substring(7)); //stage1-2 -> 2
         //1Debug.Log($"StageName ::: {stageName} StageNum ::: {stageNum}\n");
 
-        for (int i = 0; i < data.Count; i++)
+        if (stageNum == 0)
         {
-            if (data[i]["StageNum"].Equals(stageName))
+            descriText.text = data[stageNum]["stageDescri"].ToString();
+            if (descriText.text.Contains("/"))
             {
-                //스테이지 설명
-                descriText.text = data[i]["stageDescri"].ToString();
-                stageText.text = PlayerPrefs.GetString(curStage).Substring(5, 3);
-
-
-                //스테이지 정보 (적/칩개수/아이템 등)
-                enemyChipText.text = $"Enemy 칩 개수 : {data[i]["chip_EN"].ToString()}";
-                playerChipText.text = $"Player 칩 개수 {data[i]["chip_PL"].ToString()}";
-                enemyName.text = $"ENEMY [ { data[i]["enemyName"].ToString() } ]";
-                availItemCnt.text = "사용 가능 아이템 수\n" +
-                                        data[i]["dcDeck_PL"].ToString() + " / " + data[i]["rndShuffle_PL"].ToString() + " / " +
-                                        data[i]["otherPCDc_PL"].ToString() + " / " + data[i]["turnTimeInf_PL"].ToString();
-
-                //Debug.Log($"{data[i]["stageDescri"]} {data[i]["StageNum"]}\n");
+                string[] dText = descriText.text.Split("/");
+                descriText.text = dText[0] + "\n" + dText[1];
             }
-        }
+            stageText.text = "꿈?";
 
+            enemyName.text = $"ENEMY [ { data[stageNum]["enemyName"].ToString() } ]";
+            enemyChipText.text = "???";
+            playerChipText.text = "???";
+            availItemCnt.text = "???";
+        }
+        else
+        {
+            //스테이지 설명
+            descriText.text = data[stageNum]["stageDescri"].ToString();
+            if (descriText.text.Contains("/"))
+            {
+                string[] dText = descriText.text.Split("/");
+                descriText.text = dText[0] + "\n" + dText[1];
+            }
+            
+            stageText.text = PlayerPrefs.GetString(curStage).Substring(5, 3);
+
+
+            //스테이지 정보 (적/칩개수/아이템 등)
+            enemyChipText.text = $"Enemy 칩 개수 : {data[stageNum]["chip_EN"].ToString()}";
+            playerChipText.text = $"Player 칩 개수 {data[stageNum]["chip_PL"].ToString()}";
+            enemyName.text = $"ENEMY [ { data[stageNum]["enemyName"].ToString() } ]";
+            availItemCnt.text = "사용 가능 아이템 수\n" +
+                                    data[stageNum]["dcDeck_PL"].ToString() + " / " + data[stageNum]["rndShuffle_PL"].ToString() + " / " +
+                                    data[stageNum]["otherPCDc_PL"].ToString() + " / " + data[stageNum]["turnTimeInf_PL"].ToString();
+
+            //Debug.Log($"{data[stageNum]["stageDescri"]} {data[stageNum]["StageNum"]}\n");
+        }
 
     }
 
