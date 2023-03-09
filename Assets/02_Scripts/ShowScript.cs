@@ -13,6 +13,7 @@ public class ShowScript : MonoBehaviour
 
     public Text talkerText;
     public Text scriptText;
+    public InputField userNameText;
 
     public int startIndex = 0;
     public int lastIndex = 0;
@@ -24,6 +25,7 @@ public class ShowScript : MonoBehaviour
     ArrayList indexArr = new ArrayList();
     ArrayList indexStrArr = new ArrayList();
 
+    public string userName;
 
     public GameManager2 gameManager;
     public AudioSource clickSFX;
@@ -38,6 +40,7 @@ public class ShowScript : MonoBehaviour
         int stageNum = int.Parse(PlayerPrefs.GetString(curStage).Substring(7)); //stage1-2 -> 2
         string bgmName = $"BGM{stageNum}";
 
+        //BGM 선택
         chosenBGM = GameObject.Find(bgmName).GetComponentInChildren<AudioSource>();
         chosenBGM.Play();
 
@@ -45,9 +48,6 @@ public class ShowScript : MonoBehaviour
 
         curStageNum = PlayerPrefs.GetString(curStage);
         Debug.Log($"CurStage ::: {curStageNum} cur stageNum :: {stageNum}");
-
-        //curStageNum이랑 일치하는 것중 가장 앞의 것부터 출력하고 다음부터는 함수로 출력하게
-        //index를 구해서 i를 변경시켜준다.
 
         if (PlayerPrefs.GetString("CUR_SCRIPT").Equals("END"))
         {
@@ -61,7 +61,7 @@ public class ShowScript : MonoBehaviour
         for (int i=0; i<data.Count; i++)
         {
             string curStNm = data[i]["StageNum"].ToString(); //stage1-0
-            if (curStNm.Equals("stage0"))
+            if (curStNm.Equals("stage1-0"))
             {
                 continue;
             }
@@ -74,11 +74,19 @@ public class ShowScript : MonoBehaviour
         }
 
 
+        if (stageNum == 0)
+        {
+            startIndex = 0;
+            PlayerPrefs.SetString("CUR_SCRIPT", "START");
+            scriptState = "시작";
+        }
 
-        if (PlayerPrefs.GetInt("END_INDEX") == 0) //start
+        else if (PlayerPrefs.GetInt("END_INDEX") == 0) //start
         {
             startIndex = int.Parse(indexArr[stageNum - 1].ToString());
+            Debug.Log($"start index ::: {startIndex}");
         }
+        
         else
         {
             startIndex = PlayerPrefs.GetInt("END_INDEX");
@@ -94,12 +102,42 @@ public class ShowScript : MonoBehaviour
 
     private void Update()
     {
+
         if (Input.GetMouseButtonDown(0) && scriptState.Equals("시작"))
         {
-            clickSFX.Play();
-            LoadDataFromCSV(startIndex, lastIndex);
-            startIndex++;
+            if (curStageNum == "stage1-0" && startIndex == 2)
+            {
+                Debug.Log("이거 들어와???");
+                stage0Panel.SetActive(true);
+                startIndex++;
+            }
+            else if (curStageNum == "stage1-0" && startIndex == 3)
+            {
+                clickSFX.Play();
+                Debug.Log("일단 넘기는 중");
+            }
+            else if (curStageNum == "stage1-0" && startIndex == 4)
+            {
+                Debug.Log("마지막 스크립트");
+                clickSFX.Play();
+                LoadDataFromCSV0(2);
+                startIndex++;
+            }
+            else if (curStageNum == "stage1-0" && startIndex == 5)
+            {
+                clickSFX.Play();
+                Debug.Log("로비로 넘어가기1");
+                gameManager.MoveToLobbyScene();
+            }
+            else
+            {
+                clickSFX.Play();
+                LoadDataFromCSV(startIndex, lastIndex);
+                startIndex++;
+            }
+            
         }
+        
         else if (Input.GetMouseButtonDown(0) && scriptState.Equals("종료"))
         {
             clickSFX.Play();
@@ -108,25 +146,24 @@ public class ShowScript : MonoBehaviour
         }
     }
 
-    /*    public void LoadDataFromCSV(int i)
-        {
-            data = CSVReader.Read(dataPath);
+    public void LoadDataFromCSV0(int cur)
+    {
+        data = CSVReader.Read(dataPath);
 
-            if (i < data.Count) //같은 num 행 개수를 알아서 고쳐야 함
-            {
-                if (data[i]["StageNum"].Equals(curStageNum))
-                {
-                    talkerText.text = data[i]["Talker"].ToString();
-                    scriptText.text = data[i]["Script"].ToString();
-                    Debug.Log($"{data[i]["Talker"]} : {data[i]["Script"]}\n");
-                }
-            }
-            else
-            {
-                Debug.Log("게임으로 넘어가기");
-                gameManager.MoveToStage();
-            }
-        }*/
+        talkerText.text = data[cur]["Talker"].ToString();
+        if (PlayerPrefs.GetString("USER_NAME") != null)
+        {
+            talkerText.text = PlayerPrefs.GetString("USER_NAME");
+        }
+        scriptText.text = data[cur]["Script"].ToString();
+        if (scriptText.text.Contains("/"))
+        {
+            string[] dText = scriptText.text.Split("/");
+            scriptText.text = dText[0] + "\n" + dText[1];
+        }
+        Debug.Log($"{data[cur]["Talker"]} : {data[cur]["Script"]}\n");
+
+    }
 
 
     public void LoadDataFromCSV(int cur, int last)
@@ -138,7 +175,12 @@ public class ShowScript : MonoBehaviour
             if (data[cur]["StageNum"].Equals(curStageNum) && data[cur]["Start/End"].Equals("시작"))
             {
                 talkerText.text = data[cur]["Talker"].ToString();
+                if (PlayerPrefs.GetString("USER_NAME") != null && talkerText.text.Contains("User"))
+                {
+                    talkerText.text = talkerText.text.Replace("User", PlayerPrefs.GetString("USER_NAME"));
+                }
                 scriptText.text = data[cur]["Script"].ToString();
+                scriptText.text = scriptText.text.Replace("User", PlayerPrefs.GetString("USER_NAME"));
                 if (scriptText.text.Contains("/"))
                 {
                     string[] dText = scriptText.text.Split("/");
@@ -168,7 +210,12 @@ public class ShowScript : MonoBehaviour
             if (data[cur]["StageNum"].Equals(curStageNum) && data[cur]["Start/End"].Equals("종료"))
             {
                 talkerText.text = data[cur]["Talker"].ToString();
+                if (PlayerPrefs.GetString("USER_NAME") != null && talkerText.text.Contains("User"))
+                {
+                    talkerText.text = talkerText.text.Replace("User", PlayerPrefs.GetString("USER_NAME"));
+                }
                 scriptText.text = data[cur]["Script"].ToString();
+                scriptText.text = scriptText.text.Replace("User", PlayerPrefs.GetString("USER_NAME"));
                 if (scriptText.text.Contains("/"))
                 {
                     string[] dText = scriptText.text.Split("/");
@@ -186,8 +233,12 @@ public class ShowScript : MonoBehaviour
         }
     }
 
-    public void ShowUserNamePanel()
+    public void ShowOffUserNamePanel()
     {
-        stage0Panel.SetActive(true);
+        userName = userNameText.text.ToString();
+        Debug.Log($"userName: {userName}");
+        PlayerPrefs.SetString("USER_NAME", userName);
+        stage0Panel.SetActive(false);
+        startIndex++;
     }
 }

@@ -184,4 +184,9 @@ public class UIManager : MonoBehaviour
         GameObject smokeEffect = Instantiate(smokeEffectPrefab, new Vector3(-0.3f, 0.67f, -0.07f), new Quaternion(0, 0, 0, 1f));
         Destroy(smokeEffect.gameObject, 3f);
     }
+
+    public void ResetScript()
+    {
+        PlayerPrefs.SetString("CUR_SCRIPT", "START");
+    }
 }
