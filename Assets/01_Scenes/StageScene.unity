@@ -1808,7 +1808,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -331.38794}
+  m_AnchoredPosition: {x: 0, y: -393.1215}
   m_SizeDelta: {x: 500, y: 480}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &211861357
@@ -1886,7 +1886,7 @@ MonoBehaviour:
       m_Calls: []
   playType: 3
   animationStartTime: 0
-  animationTime: 1.3629893
+  animationTime: 0.9999998
   enablePlay: 0
   awakePlay: 1
   lgnoreTimeScale: 1
@@ -1925,10 +1925,10 @@ MonoBehaviour:
     _minAnimationTime: 0
     _maxAnimationTime: 1
     _minTime: 0
-    _maxTime: 1.3629893
+    _maxTime: 0.9999998
     _isLocal: 1
-    _fromVector: {x: 0, y: 400, z: 0}
-    _toVector: {x: 0, y: 350, z: 0}
+    _fromVector: {x: 0, y: 360, z: 0}
+    _toVector: {x: 0, y: 310, z: 0}
     _fromColor: {r: 1, g: 1, b: 1, a: 1}
     _toColor: {r: 1, g: 1, b: 1, a: 1}
     _fromFloat: 0
@@ -9383,7 +9383,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: -226}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &816602311
 MonoBehaviour:
@@ -18554,6 +18554,7 @@ MonoBehaviour:
   isDraw: 0
   isPlOverBet: 0
   isEnemyTurn: 0
+  dataPath: ScriptData/pokerGameDataInfo_Data
 --- !u!114 &1632393517
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23208,7 +23209,7 @@ MonoBehaviour:
     m_VerticalOverflow: 0
     m_LineSpacing: 1.3
   m_Text: "\uC2B9\uBD80 \uC218 : matchcnt\n\uD50C\uB808\uC774\uC5B4 \uCE69 \uAC1C\uC218
-    : 00\n\uC801 \uCE69 \uAC1C\uC218 : 00\n\uBCF4\uC0C1 : \uC544\uC774\uD15C \uAC1C\uC218"
+    : 00\n\uC801 \uCE69 \uAC1C\uC218 : 00"
 --- !u!222 &2128312246
 CanvasRenderer:
   m_ObjectHideFlags: 0

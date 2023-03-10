@@ -72,7 +72,7 @@ public class ShowScript : MonoBehaviour
                 Debug.Log($"추가 ::: index: {i} - 스테이지 :{curStNm}");
             }
         }
-
+        indexArr.Add(data.Count); //가장 마지막 인덱스
 
         if (stageNum == 0)
         {
@@ -172,6 +172,7 @@ public class ShowScript : MonoBehaviour
 
         if (cur < last)
         {
+            Debug.Log($"StageNum ::: {data[cur]["StageNum"]}\n시작/종료 ::: {data[cur]["Start/End"]}");
             if (data[cur]["StageNum"].Equals(curStageNum) && data[cur]["Start/End"].Equals("시작"))
             {
                 talkerText.text = data[cur]["Talker"].ToString();

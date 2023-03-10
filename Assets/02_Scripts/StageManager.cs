@@ -95,6 +95,9 @@ public class StageManager : MonoBehaviour
     public bool isPlOverBet = false;
     public bool isEnemyTurn = false;
 
+    public string dataPath;
+    public List<Dictionary<string, object>> data;
+
     IEnumerator Start()
     {
         //MatchState.Idle;
@@ -102,6 +105,13 @@ public class StageManager : MonoBehaviour
         //임시로 숫자 부여
         enemyChip = 20;
         playerChip = 20;
+
+        data = CSVReader.Read(dataPath);
+        int stageNum = int.Parse(PlayerPrefs.GetString("CUR_STAGE").Substring(7)); //stage1-2 -> 2
+        enemyChip = int.Parse(data[stageNum]["chip_EN"].ToString());
+        playerChip = int.Parse(data[stageNum]["chip_PL"].ToString());
+
+        Debug.Log($"enChip :: {enemyChip}\nplChip :: {playerChip}");
 
         /*item.resetDeck = 2;
         item.rndShuffle = 2;
@@ -364,90 +374,93 @@ public class StageManager : MonoBehaviour
             yield return StartCoroutine(LastCompare(enCardNum, plCardNum));
             yield return null;
         }
-
-        if (curTurnPlayer == "Player") //현재 턴플레이어가 플레이어라면 버튼 활성화
+        else
         {
-            uiManager.DecideRange();
-            useItemPanel.SetActive(true);
-            //아이템버튼 활성화
-            Time.timeScale = 0;
-
-            if (turnCnt == 1) { playerBetPanel.SetActive(true); }
-            else { playerBetPanel_2.SetActive(true); }
-
-            //클릭 전까지 대기
-            yield return StartCoroutine(ReturnIsBtnClick());
-
-            yield return new WaitForSeconds(5f);
-        }
-        else //curTurnPlayer == "Enemy"
-        {
-            enemyTurnPanel.SetActive(true);
-            yield return new WaitForSeconds(5f);
-            Debug.Log("3초 대기1");
-            if (turnCnt == 1)
+            if (curTurnPlayer == "Player") //현재 턴플레이어가 플레이어라면 버튼 활성화
             {
-                //배팅 or 포기
-                int bettingPer = (10 - int.Parse(Regex.Replace(plCard.ToString(), @"[^0-9]", ""))) * 10;
-                //N0%퍼의 확률로 배팅 (100-N0)퍼의 확률로 포기
+                uiManager.DecideRange();
+                useItemPanel.SetActive(true);
+                //아이템버튼 활성화
+                Time.timeScale = 0;
 
-                int rndBetNum = Random.Range(0, 100);
-                Debug.Log($"rndBetNum : {rndBetNum}, bettingPer : {bettingPer + 10}");
+                if (turnCnt == 1) { playerBetPanel.SetActive(true); }
+                else { playerBetPanel_2.SetActive(true); }
 
-                if (rndBetNum < bettingPer + 10)
-                {
-                    yield return StartCoroutine(NormalBetting());
-                }
-                else
-                {
-                    //포기
-                    Debug.Log("::: DIE :::");
-                    yield return new WaitForSeconds(3.0f);
-                    yield return StartCoroutine(DieBetting());
-                }
+                //클릭 전까지 대기
+                yield return StartCoroutine(ReturnIsBtnClick());
+
+                yield return new WaitForSeconds(5f);
             }
-            else //오버배팅하거나, 동률배팅하거나 포기하거나
+            else //curTurnPlayer == "Enemy"
             {
-                //선택지 확률부터
-                int choice = Random.Range(0, 3);
-                PrintChips();
-                if (overBetChip == enemyChip || curBetChip == enemyChip)
+                enemyTurnPanel.SetActive(true);
+                yield return new WaitForSeconds(5f);
+                Debug.Log("3초 대기1");
+                if (turnCnt == 1)
                 {
-                    choice = Random.Range(1, 3);
-                    Debug.Log($"선택 변경 overbetting -> {choice}");
-                }
+                    //배팅 or 포기
+                    int bettingPer = (10 - int.Parse(Regex.Replace(plCard.ToString(), @"[^0-9]", ""))) * 10;
+                    //N0%퍼의 확률로 배팅 (100-N0)퍼의 확률로 포기
 
-                Debug.Log($"CHOICE ::: {choice}");
-                if (choice == 0) // overBetting
+                    int rndBetNum = Random.Range(0, 100);
+                    Debug.Log($"rndBetNum : {rndBetNum}, bettingPer : {bettingPer + 10}");
+
+                    if (rndBetNum < bettingPer + 10)
+                    {
+                        yield return StartCoroutine(NormalBetting());
+                    }
+                    else
+                    {
+                        //포기
+                        Debug.Log("::: DIE :::");
+                        yield return new WaitForSeconds(3.0f);
+                        yield return StartCoroutine(DieBetting());
+                    }
+                }
+                else //오버배팅하거나, 동률배팅하거나 포기하거나
                 {
-                    Debug.Log("::: OverBetting :::");
-                    yield return StartCoroutine(ReturnOverBetting());
-                    
-                } else if (choice == 1) //SameBetting
-                {
-                    Debug.Log("::: SameBetting :::");
-                    Debug.Log($"CHIP BETTING :: {overBetChip}");
-                    yield return StartCoroutine(ReturnSameBetting());
-                } else //Die
-                {
-                    //포기
-                    Debug.Log("::: DIE :::");
-                    yield return StartCoroutine(DieBetting());
+                    //선택지 확률부터
+                    int choice = Random.Range(0, 3);
                     PrintChips();
+                    if (overBetChip == enemyChip || curBetChip == enemyChip)
+                    {
+                        choice = Random.Range(1, 3);
+                        Debug.Log($"선택 변경 overbetting -> {choice}");
+                    }
+
+                    Debug.Log($"CHOICE ::: {choice}");
+                    if (choice == 0) // overBetting
+                    {
+                        Debug.Log("::: OverBetting :::");
+                        yield return StartCoroutine(ReturnOverBetting());
+
+                    }
+                    else if (choice == 1) //SameBetting
+                    {
+                        Debug.Log("::: SameBetting :::");
+                        Debug.Log($"CHIP BETTING :: {overBetChip}");
+                        yield return StartCoroutine(ReturnSameBetting());
+                    }
+                    else //Die
+                    {
+                        //포기
+                        Debug.Log("::: DIE :::");
+                        yield return StartCoroutine(DieBetting());
+                        PrintChips();
+                    }
                 }
+                Debug.Log("1초 대기2");
+                yield return new WaitForSeconds(1f);
             }
-            Debug.Log("1초 대기2");
-            yield return new WaitForSeconds(1f);
         }
 
         yield return new WaitForSeconds(3.0f);
 
-        /*if (playerChip == 0 || enemyChip == 0) // 0이 되면 무조건 카드 공개
+        if (playerChip == 0 || enemyChip == 0)
         {
-            BattleCard(enemyCard, plCard);
             isMatchOver = true;
             yield return null;
-        }*/
+        }
     }
 
 
@@ -559,7 +572,7 @@ public class StageManager : MonoBehaviour
             yield return null;
         }
 
-        if (enemyChip == 0)
+        else
         {
             if (plCardNum > enCardNum)
             {
@@ -577,7 +590,8 @@ public class StageManager : MonoBehaviour
                 HitPlayerEffect();
 
                 isMatchOver = true;
-            } else
+            } 
+            else
             {
                 //무승부시 카드 부여
                 enemyCard = shuffle.GiveCard(playCard);
@@ -996,8 +1010,8 @@ public class StageManager : MonoBehaviour
     {
         winText.text = $"승부 수 : {matchCnt}" +
             $"\n플레이어 칩 개수: {playerChip}" +
-            $"\n적 칩 개수: {enemyChip}" +
-            $"\n보상: 아이템 개수";
+            $"\n적 칩 개수: {enemyChip}";
+            //+$"\n보상: 아이템 개수";
     }
 
     public void ShowLoseResult()
