@@ -12,6 +12,15 @@ public class LobbyUIManager : MonoBehaviour
     public Text playerChipText;
     public Text enemyName;
     public Text availItemCnt;
+
+    public Text resetDeckText;
+    public Text rndShuffleText;
+    public Text changeCardText;
+    public Text timeInfiniteText;
+
+    public GameObject ExplainText_1;
+    public GameObject ExplainText_2;
+
     public bool isClear = false; //prefs
 
     public GameObject notClearImg;
@@ -22,8 +31,31 @@ public class LobbyUIManager : MonoBehaviour
 
     void Start()
     {
+        if (PlayerPrefs.GetInt("USER_ITEM_RD_CNT").ToString() == null)
+        {
+            PlayerPrefs.SetInt("USER_ITEM_RD_CNT", 0);
+        }
 
-    }
+        if (PlayerPrefs.GetInt("USER_ITEM_RS_CNT").ToString() == null)
+        {
+            PlayerPrefs.SetInt("USER_ITEM_RS_CNT", 0);
+        }
+
+        if (PlayerPrefs.GetInt("USER_ITEM_CC_CNT").ToString() == null)
+        {
+            PlayerPrefs.SetInt("USER_ITEM_CC_CNT", 0);
+        }
+
+        if (PlayerPrefs.GetInt("USER_ITEM_TI_CNT").ToString() == null)
+        {
+            PlayerPrefs.SetInt("USER_ITEM_TI_CNT", 0);
+        }
+
+        resetDeckText.text = PlayerPrefs.GetInt("USER_ITEM_RD_CNT").ToString();
+        rndShuffleText.text = PlayerPrefs.GetInt("USER_ITEM_RS_CNT").ToString();
+        changeCardText.text = PlayerPrefs.GetInt("USER_ITEM_CC_CNT").ToString();
+        timeInfiniteText.text = PlayerPrefs.GetInt("USER_ITEM_TI_CNT").ToString();
+}
 
     // Update is called once per frame
     void Update()
@@ -99,5 +131,17 @@ public class LobbyUIManager : MonoBehaviour
         {
             notClearImg.SetActive(true);
         }
+    }
+
+    public void MoveToNextPage()
+    {
+        ExplainText_1.SetActive(false);
+        ExplainText_2.SetActive(true);
+    }
+
+    public void MoveToPrePage()
+    {
+        ExplainText_1.SetActive(true);
+        ExplainText_2.SetActive(false);
     }
 }

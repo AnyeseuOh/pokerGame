@@ -29,6 +29,8 @@ public class StageManager : MonoBehaviour
     public GameObject gameOverPanelLose;
     public GameObject enemyTurnPanel;
 
+    public GameObject itemCantUsePanel;
+
     public InputField chipValue;
     public InputField overChipValue;
     public Text winText;
@@ -75,9 +77,20 @@ public class StageManager : MonoBehaviour
     public int enemyDice;
     public int gameResult = -1;
     public float turnTime = 60.0f;
+
     int cardNum;
     int enCardNum;
     int plCardNum;
+
+    public int resetDeck;
+    public int rndShuffle;
+    public int changeCard;
+    public int timeInfinite;
+
+    public int rdUseCnt=0;
+    public int rsUseCnt=0;
+    public int ccUseCnt=0;
+    public int tiUseCnt=0;
 
     public enum MatchState
     {
@@ -96,16 +109,13 @@ public class StageManager : MonoBehaviour
     public bool isEnemyTurn = false;
 
     public string dataPath;
+
     public List<Dictionary<string, object>> data;
 
-    IEnumerator Start()
-    {
-        //MatchState.Idle;
-        
-        //임시로 숫자 부여
-        enemyChip = 20;
-        playerChip = 20;
+    public Item itemManager;
 
+    IEnumerator Start()
+    {   
         data = CSVReader.Read(dataPath);
         int stageNum = int.Parse(PlayerPrefs.GetString("CUR_STAGE").Substring(7)); //stage1-2 -> 2
         enemyChip = int.Parse(data[stageNum]["chip_EN"].ToString());
@@ -113,10 +123,31 @@ public class StageManager : MonoBehaviour
 
         Debug.Log($"enChip :: {enemyChip}\nplChip :: {playerChip}");
 
-        /*item.resetDeck = 2;
-        item.rndShuffle = 2;
-        item.changeCard = 1;
-        item.timeInfinite = 2;*/
+        //스테이지 최대 사용 가능 아이템 개수 불러오기
+        resetDeck = itemManager.LoadStageItemInfo(1);
+        rndShuffle = itemManager.LoadStageItemInfo(2);
+        changeCard = itemManager.LoadStageItemInfo(3);
+        //timeInfinite = itemManager.LoadStageItemInfo(4);
+        Debug.Log($"resetDeck :: {resetDeck}\nrndShuffle :: {rndShuffle}\nchangeCard :: {changeCard}");
+
+
+        //만약 플레이어 소지개수가 최대 사용 가능 개수보다 작다면
+        //해당 아이템의 개수는 플레이어 소지개수로 대체
+        if (itemManager.LoadItemInfo(1) < resetDeck)
+        {
+            resetDeck = itemManager.LoadItemInfo(1);
+        }
+
+        if (itemManager.LoadItemInfo(2) < rndShuffle)
+        {
+            rndShuffle = itemManager.LoadItemInfo(2);
+        }
+
+        if (itemManager.LoadItemInfo(3) < changeCard)
+        {
+            changeCard = itemManager.LoadItemInfo(3);
+        }
+        Debug.Log($"resetDeck :: {resetDeck}\nrndShuffle :: {rndShuffle}\nchangeCard :: {changeCard}");
 
         //버튼 비활성화
         resetDeckBtn.GetComponent<Button>().interactable = false;
@@ -969,36 +1000,73 @@ public class StageManager : MonoBehaviour
 
     public void RndShuffleItem()
     {
-        shuffle.ItemRandomShuffle(playCard);
-        Debug.Log("========================");
-        /*foreach (GameObject i in playCard)
+        if (rndShuffle != 0)
         {
-            Debug.Log($"playCard :: {i.ToString()}");
-        }*/
-        Debug.Log("========================");
-        Debug.Log($"Count : {playCard.Count}");
+            shuffle.ItemRandomShuffle(playCard);
+            Debug.Log("========================");
+            /*foreach (GameObject i in playCard)
+            {
+                Debug.Log($"playCard :: {i.ToString()}");
+            }*/
+            Debug.Log("========================");
+            Debug.Log($"Count : {playCard.Count}");
+
+            rndShuffle--;
+            rdUseCnt++;
+        }
+        else
+        {
+            Debug.Log($"사용 가능 아이템 횟수 전부 소진!!!");
+            itemCantUsePanel.SetActive(true);
+            Time.timeScale = 0f;
+        }
     }
 
     public void DiscardDeck()
     {
-        playCard.Clear();
-        StartCoroutine(shuffle.RandomShuffleStack(initCards, initCards.Length, playCard));
-        Debug.Log("========================");
-        /*foreach (GameObject i in playCard)
+        if (resetDeck != 0)
         {
-            Debug.Log($"playCard :: {i.ToString()}");
-        }*/
-        Debug.Log("========================");
-        Debug.Log($"Count : {playCard.Count}");
+            playCard.Clear();
+            StartCoroutine(shuffle.RandomShuffleStack(initCards, initCards.Length, playCard));
+            Debug.Log("========================");
+            /*foreach (GameObject i in playCard)
+            {
+                Debug.Log($"playCard :: {i.ToString()}");
+            }*/
+            Debug.Log("========================");
+            Debug.Log($"Count : {playCard.Count}");
+
+            resetDeck--;
+            rdUseCnt++;
+        }
+        else
+        {
+            Debug.Log($"사용 가능 아이템 횟수 전부 소진!!!");
+            itemCantUsePanel.SetActive(true);
+            Time.timeScale = 0f;
+        }
+        
     }
 
     public void ChangeEnCard()
     {
-        Destroy(enemyCard);
-        enemyCard = shuffle.GiveCard(playCard);
-        enemyCard = Instantiate(enemyCard, new Vector3(-0.15f, 0, -2.5f), new Quaternion(0, -17f, 0, 0));
-        enemyCard.transform.localRotation = new Quaternion(0, -0.1f, 0, 0.99f);
-        enemyCard.name = enemyCard.name.Replace("(Clone)", "");
+        if (changeCard != 0)
+        {
+            Destroy(enemyCard);
+            enemyCard = shuffle.GiveCard(playCard);
+            enemyCard = Instantiate(enemyCard, new Vector3(-0.15f, 0, -2.5f), new Quaternion(0, -17f, 0, 0));
+            enemyCard.transform.localRotation = new Quaternion(0, -0.1f, 0, 0.99f);
+            enemyCard.name = enemyCard.name.Replace("(Clone)", "");
+
+            changeCard--;
+            ccUseCnt++;
+        }
+        else
+        {
+            Debug.Log($"사용 가능 아이템 횟수 전부 소진!!!");
+            itemCantUsePanel.SetActive(true);
+            Time.timeScale = 0f;
+        }
     }
 
     public void ShowDiceNum(GameObject[] objs, int num)
@@ -1008,10 +1076,35 @@ public class StageManager : MonoBehaviour
 
     public void ShowWinResult()
     {
+        data = CSVReader.Read(dataPath);
+        int stageNum = int.Parse(PlayerPrefs.GetString("CUR_STAGE").Substring(7)); //stage1-2 -> 2
+        string[] reward = data[stageNum]["reward"].ToString().Split("/"); //   CC/1
+        int cnt = 0;
+        string rewardStr = "";
+
+        switch (reward[0])
+        {
+            case "RD":
+                cnt = int.Parse(reward[1]) + resetDeck;
+                rewardStr = "덱 리셋 아이템";
+                PlayerPrefs.SetInt("USER_ITEM_RD_CNT", itemManager.LoadItemInfo(1) + cnt);
+                break;
+            case "RS":
+                cnt = int.Parse(reward[1]) + rndShuffle;
+                rewardStr = "덱 랜덤 셔플 아이템";
+                PlayerPrefs.SetInt("USER_ITEM_RS_CNT", itemManager.LoadItemInfo(2) + cnt);
+                break;
+            case "CC":
+                cnt = int.Parse(reward[1]) + changeCard; // 1 + 현재 아이템 개수
+                rewardStr = "적 카드 바꾸기";
+                PlayerPrefs.SetInt("USER_ITEM_CC_CNT", itemManager.LoadItemInfo(3) + cnt);
+                break;
+        }
+
         winText.text = $"승부 수 : {matchCnt}" +
             $"\n플레이어 칩 개수: {playerChip}" +
-            $"\n적 칩 개수: {enemyChip}";
-            //+$"\n보상: 아이템 개수";
+            $"\n적 칩 개수: {enemyChip}" +
+            $"\n보상: {rewardStr} {reward[1]}개";
     }
 
     public void ShowLoseResult()
@@ -1019,6 +1112,11 @@ public class StageManager : MonoBehaviour
         loseText.text = $"승부 수 : {matchCnt}" +
             $"\n플레이어 칩 개수: {playerChip}" +
             $"\n적 칩 개수: {enemyChip}";
+
+        PlayerPrefs.SetInt("USER_ITEM_RD_CNT", PlayerPrefs.GetInt("USER_ITEM_RD_CNT") - rdUseCnt);
+        PlayerPrefs.SetInt("USER_ITEM_RS_CNT", PlayerPrefs.GetInt("USER_ITEM_RS_CNT") - rsUseCnt);
+        PlayerPrefs.SetInt("USER_ITEM_CC_CNT", PlayerPrefs.GetInt("USER_ITEM_CC_CNT") - ccUseCnt);
+        //PlayerPrefs.SetInt("USER_ITEM_TI_CNT", PlayerPrefs.GetInt("USER_ITEM_TI_CNT") - tiUseCnt);
     }
 
     public void ShowCard(GameObject enemyCard, GameObject playerCard)
@@ -1051,5 +1149,10 @@ public class StageManager : MonoBehaviour
     {
         GameObject lightEffect = Instantiate(lightEffectPrefab, new Vector3(-0.57f, 0.8f, 0.56f), new Quaternion(0, 0, 0, 1f));
         Destroy(lightEffect.gameObject, 3f);
+    }
+
+    public void SaveItemInfo()
+    {
+        //게임 종료시 현재 아이템 정보 저장
     }
 }
